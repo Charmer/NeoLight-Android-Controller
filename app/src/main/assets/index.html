@@ -8,6 +8,8 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="./css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/mdb.min.css">
+    <link rel="stylesheet" href="./css/iosCheckbox.min.css">
+    <link rel="stylesheet" href="./css/iosCheckbox-theme.min.css">
     <title>NeoLight controller</title>
 </head>
 <body style="background-color:black; color:white">
@@ -35,7 +37,7 @@
                     <button type="button" id="search" class="btn btn-primary">Поиск устройств</button>
                 </div>
             </div>
-            <div id="deviceList" class="text-center mt-3"></div>
+            <div id="deviceList" class="mt-3"></div>
         </div>
     </div>
 </div>
@@ -47,15 +49,27 @@
 <script type="text/javascript" src="./js/bootstrap.min.js"></script>
 <script type="text/javascript" src="./js/mdb.min.js"></script>
 <script type="text/javascript" src="./js/iro.min.js"></script>
+<script type="text/javascript" src="./js/iosCheckbox.min.js"></script>
+<script type="html/tpl" id="DeviceList-template">
+<div class="row mb-2">
+    <div class="col-2"></div>
+    <div class="col-2"><input type='checkbox' class='form-check-input' value='{address}'></div>
+    <div class="col-6">{name}</div>
+    <div class="col-2"></div>
+</div>
+</script>
 <script type="text/javascript">
     $("#search").on("click", function () {
-//        var device = '{"address":"00:19:09:03:08:BB"}';
         let device = Android.searchDecice();
         let data = $.parseJSON(device);
         $("#deviceList").html("");
         $.each(data, function (i, item) {
-            $("#deviceList").append("<div class='form-check'><label class='form-check-label'><input type='checkbox' class='form-check-input' value='" + item + "'>" + item + "</label></div>");
+            $("#deviceList").append(renderTemplate('DeviceList-template', {
+                address: item.address,
+                name: item.name
+            }));
         });
+        $("input[type=checkbox]").iosCheckbox();
     });
     var colorPicker = new iro.ColorPicker("#color-picker-container", {
         width: 320,
@@ -70,9 +84,19 @@
         });
         Android.SendColor(JSON.stringify(devices));
     }
-
     colorPicker.on('color:change', onColorChange);
 
+    //Есть более актуальная версия работы с шаблонами через стрелочные функции, но я ж бэкэндер :)
+    function renderTemplate(name, data) {
+        let template = document.getElementById(name).innerHTML;
+        for (let property in data) {
+            if (data.hasOwnProperty(property)) {
+                let search = new RegExp('{' + property + '}', 'g');
+                template = template.replace(search, data[property]);
+            }
+        }
+        return template;
+    }
 </script>
 </body>
 </html>
